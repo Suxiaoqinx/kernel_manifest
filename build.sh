@@ -8,14 +8,6 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 
-if [ -d "kernel_workspace" ]; then
-    cd kernel_workspace
-else
-    mkdir kernel_workspace && cd kernel_workspace
-fi
-
-CURRENT_DIR="$(pwd)"
-echo "当前工作目录: $CURRENT_DIR"
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
 repo sync -j16 --fail-fast
 
@@ -32,8 +24,6 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' common/scripts/setloca
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' msm-kernel/scripts/setlocalversion
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' external/dtc/scripts/setlocalversion
 
-
-#cd kernel_platform
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 cd KernelSU
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
