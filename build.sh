@@ -178,6 +178,10 @@ cp "$OUT_DIR/Image" ./AnyKernel3/
 echo ">>> 进入 AnyKernel3 目录并打包 zip..."
 cd AnyKernel3
 
+# ===== 检查是否启用 lz4kd 和 kpm =====
+ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ./common/arch/arm64/configs/gki_defconfig)
+ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ./common/arch/arm64/configs/gki_defconfig)
+
 # 动态生成 ZIP 文件名
 MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
 ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
