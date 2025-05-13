@@ -15,7 +15,7 @@ CUSTOM_SUFFIX=${CUSTOM_SUFFIX:-oki-Coolapk@Suxiaoqing}
 read -p "请输入 Bazel 构建目标（默认：pineapple）: " BAZEL_TARGET
 BAZEL_TARGET=${BAZEL_TARGET:-pineapple}
 
-read -p "是否使用 patch_linux 工具修补内核？(y/n，默认：y): " USE_PATCH_LINUX
+read -p "是否使用 patch_linux 工具添加KPM补丁内核？(y/n，默认：y): " USE_PATCH_LINUX
 USE_PATCH_LINUX=${USE_PATCH_LINUX:-y}
 
 read -p "是否应用 lz4kd 补丁？(y/n，默认：y): " APPLY_LZ4KD
@@ -64,8 +64,8 @@ for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion .
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
-# ===== 拉取 KernelSU 并设置版本号 =====
-echo ">>> 拉取 KernelSU 并设置版本..."
+# ===== 拉取 SukiSU-Ultra 并设置版本号 =====
+echo ">>> 拉取 SukiSU-Ultra 并设置版本..."
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 cd KernelSU
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
@@ -92,7 +92,7 @@ patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
 cd ../
 
-# ===== 选择性应用 LZ4KD 补丁 =====
+# ===== 选择应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   echo ">>> 应用 LZ4KD 补丁..."
   cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux/
@@ -149,15 +149,50 @@ done
 echo ">>> 开始编译内核..."
 ./build_with_bazel.py -t "$BAZEL_TARGET" gki
 
-# ===== 选择性使用 patch_linux =====
+# ===== 选择使用 patch_linux (KPM补丁)=====
+OUT_DIR="./out/msm-kernel-${BAZEL_TARGET}-gki/dist"
 if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   echo ">>> 使用 patch_linux 工具处理输出..."
-  cd ./out/msm-kernel-${BAZEL_TARGET}-gki/dist
+  cd "$OUT_DIR"
   curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
   chmod +x patch_linux
   ./patch_linux
   rm -f Image
   mv oImage Image
+  cd ../../..  # 返回到 kernel_platform 根目录
 else
   echo ">>> 跳过 patch_linux 操作"
 fi
+
+# ===== 动态生成 ZIP 文件名 =====
+MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
+ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
+
+# 如果启用了 lz4kd 和 kpm，添加到文件名
+if [[ -n "$ENABLE_LZ4KD" && -n "$ENABLE_KPM" ]]; then
+  ZIP_NAME="${ZIP_NAME}-lz4kd-kpm"
+elif [[ -n "$ENABLE_LZ4KD" ]]; then
+  ZIP_NAME="${ZIP_NAME}-lz4kd"
+elif [[ -n "$ENABLE_KPM" ]]; then
+  ZIP_NAME="${ZIP_NAME}-kpm"
+fi
+
+# 添加日期
+ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
+
+# ===== 克隆并打包 AnyKernel3 =====
+echo ">>> 克隆 AnyKernel3 项目..."
+git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
+
+echo ">>> 清理 AnyKernel3 Git 信息..."
+rm -rf ./AnyKernel3/.git
+
+echo ">>> 拷贝内核镜像到 AnyKernel3 目录..."
+cp "$OUT_DIR/Image" ./AnyKernel3/
+
+echo ">>> 进入 AnyKernel3 目录并打包 zip..."
+cd AnyKernel3
+
+zip -r "../$ZIP_NAME" ./*
+
+echo ">>> 打包完成: $ZIP_NAME"
