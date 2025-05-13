@@ -11,7 +11,7 @@ chmod a+x ./git-repo/repo
 #mkdir kernel_workspace && cd kernel_workspace
 repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
     -b realme/sm8650 -m gtneo6.xml --depth=1
-repo sync
+repo sync -j4 --fail-fast
 
 cd kernel_platform
 rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
