@@ -30,6 +30,11 @@ echo "使用 patch_linux: $USE_PATCH_LINUX"
 echo "应用 lz4kd 补丁: $APPLY_LZ4KD"
 echo "==================="
 
+# ===== 初始化工作目录 =====
+WORKDIR="$HOME/kernel_workspace"
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
+
 # ===== 安装依赖 =====
 echo ">>> 正在安装构建依赖..."
 sudo apt-get update
@@ -46,7 +51,17 @@ echo ">>> 正在初始化仓库..."
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
 repo sync -j16 --fail-fast
 
-cd ./kernel_platform
+# ===== 查找 kernel 构建目录 =====
+echo ">>> 查找 kernel 构建目录..."
+KERNEL_DIR=$(find . -type f -name build_with_bazel.py -exec dirname {} \; | head -n1)
+
+if [[ -z "$KERNEL_DIR" ]]; then
+  echo "❌ 未找到包含 build_with_bazel.py 的目录，可能 manifest 错误或 sync 失败。"
+  exit 1
+fi
+
+cd "$KERNEL_DIR"
+echo ">>> 已进入 kernel 目录: $(pwd)"
 
 # ===== 清除 abi 文件、去除 -dirty 后缀 =====
 echo ">>> 正在清除 ABI 文件及去除 dirty 后缀..."
@@ -167,7 +182,7 @@ fi
 
 # ===== 克隆并打包 AnyKernel3 =====
 echo ">>> 克隆 AnyKernel3 项目..."
-git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
+git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
 
 echo ">>> 清理 AnyKernel3 Git 信息..."
 rm -rf ./AnyKernel3/.git
@@ -179,14 +194,20 @@ echo ">>> 进入 AnyKernel3 目录并打包 zip..."
 cd AnyKernel3
 
 # ===== 检查是否启用 lz4kd 和 kpm =====
-ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ./common/arch/arm64/configs/gki_defconfig)
-ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ./common/arch/arm64/configs/gki_defconfig)
+ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ../common/arch/arm64/configs/gki_defconfig)
+ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ../common/arch/arm64/configs/gki_defconfig)
 
-# 动态生成 ZIP 文件名
+# ===== 如果启用 lz4kd，则下载 zram.zip 并放入当前目录 =====
+if [[ -n "$ENABLE_LZ4KD" ]]; then
+  echo ">>> 检测到启用了 lz4kd，准备下载 zram.zip..."
+  curl -LO https://raw.githubusercontent.com/Suxiaoqinx/kernel_manifest_OnePlus_Sukisu_Ultra/main/zram.zip
+  echo ">>> 已下载 zram.zip 并放入打包目录"
+fi
+
+# ===== 生成 ZIP 文件名 =====
 MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
 ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
 
-# 根据配置项添加到文件名
 if [[ -n "$ENABLE_LZ4KD" && -n "$ENABLE_KPM" ]]; then
   ZIP_NAME="${ZIP_NAME}-lz4kd-kpm"
 elif [[ -n "$ENABLE_LZ4KD" ]]; then
@@ -195,13 +216,11 @@ elif [[ -n "$ENABLE_KPM" ]]; then
   ZIP_NAME="${ZIP_NAME}-kpm"
 fi
 
-# 添加日期
 ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
 
-# 执行打包
+# ===== 打包 ZIP 文件，包括 zram.zip（如果存在） =====
 echo ">>> 打包文件: $ZIP_NAME"
-zip -r "../$ZIP_NAME" ./*  # 打包整个 AnyKernel3 目录中的所有文件
+zip -r "../$ZIP_NAME" ./*
 
-# 输出具体路径
 ZIP_PATH="$(realpath "../$ZIP_NAME")"
-echo ">>> 打包完成: $ZIP_PATH"
+echo ">>> 打包完成 文件所在目录: $ZIP_PATH"
