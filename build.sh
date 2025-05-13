@@ -9,15 +9,14 @@ export SUSFS_VERSION="v1.5.5"
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-mkdir -p ./git-repo
-curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
-chmod a+x ./git-repo/repo
+curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+chmod a+x ~/repo
+sudo mv ~/repo /usr/local/bin/repo
 
-#mkdir -p "$CONFIG"
-#cd "$CONFIG"
-./git-repo/repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
+mkdir kernel_workspace && cd kernel_workspace
+repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
     -b realme/sm8650 -m ${CONFIG}.xml --depth=1
-./git-repo/repo sync -c -j$(nproc --all) --no-tags --fail-fast
+repo sync
 
 cd kernel_platform
 rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
