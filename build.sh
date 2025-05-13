@@ -82,8 +82,7 @@ sed -i 's/check_defconfig//' ./common/build.config.gki
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./common/scripts/setlocalversion  
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./msm-kernel/scripts/setlocalversion
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts/setlocalversion
-
-./oplus/build/oplus_build_kernel.sh pineapple gki
+./kernel_platform/build_with_bazel.py -t pineapple gki
 
 #cd ../kernel_workspace/out/msm-kernel-pineapple-gki/dist
 #curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
