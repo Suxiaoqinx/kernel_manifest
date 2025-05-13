@@ -52,8 +52,7 @@ cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
 cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux
 cp -r ../SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
 cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
-cd KernelSU-Next
-patch -p1 < KernelSU-Next-Implement-SUSFS-${SUSFS_VERSION}-Universal.patch || true
+
 cd ../common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 cp ../../kernel_patches/69_hide_stuff.patch ./
