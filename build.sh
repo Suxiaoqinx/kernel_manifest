@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-export CONFIG="gtneo6"
-export ANYKERNEL_BRANCH="android14-6.1"
-export SUSFS_BRANCH="gki-android14-6.1"
-export SUSFS_VERSION="v1.5.5"
-
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
@@ -93,9 +88,9 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts
 cd ../../
 ./oplus/build/oplus_build_kernel.sh pineapple gki
 
-cd kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist
-curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
-chmod +x patch_linux
-./patch_linux
-rm -f Image
-mv oImage Image
+#cd ../kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist
+#curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
+#chmod +x patch_linux
+#./patch_linux
+#rm -f Image
+#mv oImage Image
