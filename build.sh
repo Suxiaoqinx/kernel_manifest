@@ -35,23 +35,24 @@ git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
-cd ./kernel_platform
-cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
-cp ../kernel_patches/next/syscall_hooks.patch ./common/
-cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
-cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux
-cp -r ../SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
-cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
+
+cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+cp ./kernel_patches/next/syscall_hooks.patch ./common/
+cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
+cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux
+cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
+cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
 
 cd ./common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
-cp ../../kernel_patches/69_hide_stuff.patch ./
+cp .././kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
-cp ../../SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./
+cp .././SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./
 patch -p1 -F 3 < lz4kd.patch || true
 
+cd .././
 echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
 echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
 echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
@@ -82,7 +83,6 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./common/scripts/setlo
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./msm-kernel/scripts/setlocalversion
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts/setlocalversion
 
-cd ../../
 ./oplus/build/oplus_build_kernel.sh pineapple gki
 
 #cd ../kernel_workspace/out/msm-kernel-pineapple-gki/dist
