@@ -10,7 +10,7 @@ sudo mv ~/repo /usr/local/bin/repo
 
 #mkdir kernel_workspace && cd kernel_workspace
 repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
-    -b realme/sm8650 -m ${CONFIG}.xml --depth=1
+    -b realme/sm8650 -m gtneo6.xml --depth=1
 repo sync
 
 cd kernel_platform
