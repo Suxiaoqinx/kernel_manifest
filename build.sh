@@ -44,7 +44,7 @@ git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
-cd kernel_platform
+cd gtneo6/kernel_platform
 cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
 cp ../kernel_patches/next/syscall_hooks.patch ./common/
 cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
@@ -53,7 +53,7 @@ cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux
 cp -r ../SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
 cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
 
-cd ../common
+cd gtneo6/kernel_platform/common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 cp ../../kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
