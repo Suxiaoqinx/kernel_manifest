@@ -13,8 +13,8 @@ mkdir -p ./git-repo
 curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
 chmod a+x ./git-repo/repo
 
-mkdir -p "$CONFIG"
-cd "$CONFIG"
+#mkdir -p "$CONFIG"
+#cd "$CONFIG"
 ./git-repo/repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
     -b realme/sm8650 -m ${CONFIG}.xml --depth=1
 ./git-repo/repo sync -c -j$(nproc --all) --no-tags --fail-fast
