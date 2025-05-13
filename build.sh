@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export CONFIG="gt5pro"
+export CONFIG="gtneo6"
 export ANYKERNEL_BRANCH="android14-6.1"
 export SUSFS_BRANCH="gki-android14-6.1"
 export SUSFS_VERSION="v1.5.5"
