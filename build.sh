@@ -8,12 +8,16 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 
-mkdir kernel_workspace && cd kernel_workspace
-repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
-repo sync -j16 --fail-fast
+if [ -d "kernel_workspace" ]; then
+    cd kernel_workspace
+else
+    mkdir kernel_workspace && cd kernel_workspace
+fi
 
 CURRENT_DIR="$(pwd)"
 echo "当前工作目录: $CURRENT_DIR"
+repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
+repo sync -j16 --fail-fast
 
 cd ./kernel_platform
 rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
