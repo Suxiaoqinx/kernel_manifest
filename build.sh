@@ -85,7 +85,7 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts
 
 ./build_with_bazel.py -t pineapple gki
 
-cd /kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/host
+cd /kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist
 curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
 chmod +x patch_linux
 ./patch_linux
