@@ -7,10 +7,10 @@ sudo apt-get install -y git curl zip perl make gcc python3
 curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 
-mkdir kernel_workspace && cd kernel_workspace
+#mkdir kernel_workspace && cd kernel_workspace
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
 repo sync
-rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+rm /kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
 rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
 sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
