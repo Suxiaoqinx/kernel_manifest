@@ -4,41 +4,38 @@ set -e
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-mkdir -p ./git-repo
-curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
-chmod a+x ./git-repo/repo
+curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+chmod a+x ~/repo
 
-#mkdir kernel_workspace && cd kernel_workspace
-repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
-    -b realme/sm8650 -m gtneo6.xml --depth=1
-repo sync -j4 --fail-fast
+mkdir kernel_workspace && cd kernel_workspace
+repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
+repo sync
+rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
+sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+sed -i 's/ -dirty//g' kernel_platform/external/dtc/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/common/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/msm-kernel/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/external/dtc/scripts/setlocalversion
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/common/scripts/setlocalversion   
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/msm-kernel/scripts/setlocalversion
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/external/dtc/scripts/setlocalversion
+
 
 cd kernel_platform
-rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-rm msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-sed -i 's/ -dirty//g' ./common/scripts/setlocalversion
-sed -i 's/ -dirty//g' ./msm-kernel/scripts/setlocalversion
-sed -i 's/ -dirty//g' ./external/dtc/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' ./common/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' ./msm-kernel/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' ./external/dtc/scripts/setlocalversion
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./common/scripts/setlocalversion   
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./msm-kernel/scripts/setlocalversion
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts/setlocalversion
-
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 cd KernelSU
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
-echo "KSUVER=$KSU_VERSION" >> GITHUB_ENV
 export KSU_VERSION=$KSU_VERSION
 sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
-cd ../../
+cd .././
 git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
-cd ./kernel_platform
+cd kernel_platform
 cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
 cp ../kernel_patches/next/syscall_hooks.patch ./common/
 cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
