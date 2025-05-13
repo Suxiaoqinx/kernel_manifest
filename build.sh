@@ -8,7 +8,7 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 
-mkdir kernel_workspace && cd kernel_workspace
+#mkdir kernel_workspace && cd kernel_workspace
 repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
     -b realme/sm8650 -m ${CONFIG}.xml --depth=1
 repo sync
