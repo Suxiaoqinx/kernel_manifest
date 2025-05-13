@@ -9,8 +9,8 @@ curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
 chmod a+x ./git-repo/repo
 
 #mkdir kernel_workspace && cd kernel_workspace
-../git-repo/repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
-../git-repo/repo sync
+./git-repo/repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
+./git-repo/repo sync
 
 cd kernel_platform
 rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
