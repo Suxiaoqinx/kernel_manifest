@@ -4,9 +4,9 @@ set -e
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
-chmod a+x ~/repo
-sudo mv ~/repo /usr/local/bin/repo
+mkdir -p ./git-repo
+curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
+chmod a+x ./git-repo/repo
 
 #mkdir kernel_workspace && cd kernel_workspace
 repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
