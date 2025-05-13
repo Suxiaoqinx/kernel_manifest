@@ -13,8 +13,8 @@ mkdir -p ./git-repo
 curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
 chmod a+x ./git-repo/repo
 
-mkdir -p "$CONFIG"
-cd "$CONFIG"
+#mkdir -p "$CONFIG"
+#cd "$CONFIG"
 ../git-repo/repo init -u https://github.com/Suxiaoqinx/kernel_manifest.git \
     -b realme/sm8650 -m ${CONFIG}.xml --depth=1
 ../git-repo/repo sync -c -j$(nproc --all) --no-tags --fail-fast
@@ -33,18 +33,18 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./msm-kernel/scripts/s
 sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts/setlocalversion
 
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
- cd KernelSU
- KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
- echo "KSUVER=$KSU_VERSION" >> GITHUB_ENV
- export KSU_VERSION=$KSU_VERSION
- sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
+cd KernelSU
+KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
+echo "KSUVER=$KSU_VERSION" >> GITHUB_ENV
+export KSU_VERSION=$KSU_VERSION
+sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
 cd ../../
 git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
-cd ./gtneo6/kernel_platform
+cd ./kernel_platform
 cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
 cp ../kernel_patches/next/syscall_hooks.patch ./common/
 cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
