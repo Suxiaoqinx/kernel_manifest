@@ -4,26 +4,29 @@ set -e
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
-chmod a+x ~/repo
+mkdir -p ./git-repo
+curl -o ./git-repo/repo https://storage.googleapis.com/git-repo-downloads/repo
+chmod a+x ./git-repo/repo
 
 #mkdir kernel_workspace && cd kernel_workspace
-repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
-repo sync
-rm /kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
-sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
-sed -i 's/ -dirty//g' kernel_platform/external/dtc/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/common/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/msm-kernel/scripts/setlocalversion
-sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/external/dtc/scripts/setlocalversion
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/common/scripts/setlocalversion   
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/msm-kernel/scripts/setlocalversion
-sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' kernel_platform/external/dtc/scripts/setlocalversion
-
+../git-repo/repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace3_pro_v.xml --depth=1
+../git-repo/repo sync
 
 cd kernel_platform
+rm common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+rm msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+sed -i 's/ -dirty//g' common/scripts/setlocalversion
+sed -i 's/ -dirty//g' msm-kernel/scripts/setlocalversion
+sed -i 's/ -dirty//g' external/dtc/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' common/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' msm-kernel/scripts/setlocalversion
+sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' external/dtc/scripts/setlocalversion
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' common/scripts/setlocalversion   
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' msm-kernel/scripts/setlocalversion
+sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' external/dtc/scripts/setlocalversion
+
+
+#cd kernel_platform
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 cd KernelSU
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
@@ -85,7 +88,7 @@ sed -i '$s|echo "\$res"|echo "\-oki-Coolapk@Suxiaoqing"|' ./external/dtc/scripts
 cd ../../
 ./oplus/build/oplus_build_kernel.sh pineapple gki
 
-#cd ../kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist
+#cd ../kernel_workspace/out/msm-kernel-pineapple-gki/dist
 #curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
 #chmod +x patch_linux
 #./patch_linux
