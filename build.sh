@@ -38,7 +38,7 @@ git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
-cd kernel_platform
+cd ./kernel_platform
 cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
 cp ../kernel_patches/next/syscall_hooks.patch ./common/
 cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
