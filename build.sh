@@ -159,26 +159,11 @@ if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   ./patch_linux
   rm -f Image
   mv oImage Image
+  echo ">>> 已成功打上KPM补丁"
   cd ../../..  # 返回到 kernel_platform 根目录
 else
   echo ">>> 跳过 patch_linux 操作"
 fi
-
-# ===== 动态生成 ZIP 文件名 =====
-MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
-ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
-
-# 如果启用了 lz4kd 和 kpm，添加到文件名
-if [[ -n "$ENABLE_LZ4KD" && -n "$ENABLE_KPM" ]]; then
-  ZIP_NAME="${ZIP_NAME}-lz4kd-kpm"
-elif [[ -n "$ENABLE_LZ4KD" ]]; then
-  ZIP_NAME="${ZIP_NAME}-lz4kd"
-elif [[ -n "$ENABLE_KPM" ]]; then
-  ZIP_NAME="${ZIP_NAME}-kpm"
-fi
-
-# 添加日期
-ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
 
 # ===== 克隆并打包 AnyKernel3 =====
 echo ">>> 克隆 AnyKernel3 项目..."
@@ -193,6 +178,26 @@ cp "$OUT_DIR/Image" ./AnyKernel3/
 echo ">>> 进入 AnyKernel3 目录并打包 zip..."
 cd AnyKernel3
 
-zip -r "../$ZIP_NAME" ./*
+# 动态生成 ZIP 文件名
+MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
+ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
 
-echo ">>> 打包完成: $ZIP_NAME"
+# 根据配置项添加到文件名
+if [[ -n "$ENABLE_LZ4KD" && -n "$ENABLE_KPM" ]]; then
+  ZIP_NAME="${ZIP_NAME}-lz4kd-kpm"
+elif [[ -n "$ENABLE_LZ4KD" ]]; then
+  ZIP_NAME="${ZIP_NAME}-lz4kd"
+elif [[ -n "$ENABLE_KPM" ]]; then
+  ZIP_NAME="${ZIP_NAME}-kpm"
+fi
+
+# 添加日期
+ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
+
+# 执行打包
+echo ">>> 打包文件: $ZIP_NAME"
+zip -r "../$ZIP_NAME" ./*  # 打包整个 AnyKernel3 目录中的所有文件
+
+# 输出具体路径
+ZIP_PATH="$(realpath "../$ZIP_NAME")"
+echo ">>> 打包完成: $ZIP_PATH"
