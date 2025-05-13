@@ -2,6 +2,7 @@
 set -e
 
 # ===== 设置自定义参数 =====
+echo ">>> 读取用户配置..."
 read -p "请输入 SoC 分支名称（默认：sm8650）: " SOC_BRANCH
 SOC_BRANCH=${SOC_BRANCH:-sm8650}
 
@@ -30,21 +31,25 @@ echo "应用 lz4kd 补丁: $APPLY_LZ4KD"
 echo "==================="
 
 # ===== 安装依赖 =====
+echo ">>> 正在安装构建依赖..."
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
 # ===== 安装 repo 工具 =====
+echo ">>> 正在安装 repo 工具..."
 curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 
 # ===== 初始化仓库 =====
+echo ">>> 正在初始化仓库..."
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
 repo sync -j16 --fail-fast
 
 cd ./kernel_platform
 
 # ===== 清除 abi 文件、去除 -dirty 后缀 =====
+echo ">>> 正在清除 ABI 文件及去除 dirty 后缀..."
 rm common/android/abi_gki_protected_exports_* || true
 rm msm-kernel/android/abi_gki_protected_exports_* || true
 
@@ -54,11 +59,13 @@ for f in common/scripts/setlocalversion msm-kernel/scripts/setlocalversion exter
 done
 
 # ===== 替换版本后缀 =====
+echo ">>> 替换内核版本后缀..."
 for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion ./external/dtc/scripts/setlocalversion; do
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
 # ===== 拉取 KernelSU 并设置版本号 =====
+echo ">>> 拉取 KernelSU 并设置版本..."
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 cd KernelSU
 KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
@@ -66,12 +73,14 @@ export KSU_VERSION=$KSU_VERSION
 sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
 # ===== 克隆补丁仓库 =====
+echo ">>> 克隆补丁仓库..."
 cd ../
 git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
 # ===== 应用 SUSFS 补丁 =====
+echo ">>> 应用 SUSFS 补丁..."
 cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
 cp ./kernel_patches/next/syscall_hooks.patch ./common/
 cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
@@ -85,7 +94,7 @@ cd ../
 
 # ===== 选择性应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
-  echo ">>> 正在应用 lz4kd 补丁..."
+  echo ">>> 应用 LZ4KD 补丁..."
   cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux/
   cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
   cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
@@ -94,10 +103,11 @@ if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   patch -p1 -F 3 < lz4kd.patch || true
   cd ../
 else
-  echo ">>> 跳过 lz4kd 补丁应用"
+  echo ">>> 跳过 LZ4KD 补丁应用"
 fi
 
 # ===== 添加 defconfig 配置项 =====
+echo ">>> 添加 defconfig 配置项..."
 cat >> ./common/arch/arm64/configs/gki_defconfig <<EOF
 CONFIG_KSU=y
 CONFIG_KPM=y
@@ -126,14 +136,17 @@ CONFIG_CRYPTO_842=y
 EOF
 
 # ===== 禁用 defconfig 检查 =====
+echo ">>> 禁用 defconfig 检查..."
 sed -i 's/check_defconfig//' ./common/build.config.gki
 
 # ===== 再次替换版本后缀 =====
+echo ">>> 再次替换版本后缀..."
 for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion ./external/dtc/scripts/setlocalversion; do
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
 # ===== 编译内核 =====
+echo ">>> 开始编译内核..."
 ./build_with_bazel.py -t "$BAZEL_TARGET" gki
 
 # ===== 选择性使用 patch_linux =====
