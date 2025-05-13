@@ -51,17 +51,7 @@ echo ">>> 正在初始化仓库..."
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
 repo sync -j16 --fail-fast
 
-# ===== 查找 kernel 构建目录 =====
-echo ">>> 查找 kernel 构建目录..."
-KERNEL_DIR=$(find . -type f -name build_with_bazel.py -exec dirname {} \; | head -n1)
-
-if [[ -z "$KERNEL_DIR" ]]; then
-  echo "❌ 未找到包含 build_with_bazel.py 的目录，可能 manifest 错误或 sync 失败。"
-  exit 1
-fi
-
-cd "$KERNEL_DIR"
-echo ">>> 已进入 kernel 目录: $(pwd)"
+cd "$WORKDIR/kernel_platform"
 
 # ===== 清除 abi 文件、去除 -dirty 后缀 =====
 echo ">>> 正在清除 ABI 文件及去除 dirty 后缀..."
