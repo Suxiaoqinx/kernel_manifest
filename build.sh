@@ -139,7 +139,7 @@ done
 # ===== 选择性使用 patch_linux =====
 if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   echo ">>> 使用 patch_linux 工具处理输出..."
-  cd /out/msm-kernel-${BAZEL_TARGET}-gki/dist
+  cd ./out/msm-kernel-${BAZEL_TARGET}-gki/dist
   curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
   chmod +x patch_linux
   ./patch_linux
