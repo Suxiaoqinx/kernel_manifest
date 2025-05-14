@@ -177,8 +177,8 @@ done
 
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
-#cd "$WORKDIR/kernel_platform"
-./build_with_bazel.py -t "$BAZEL_TARGET" gki
+cd "$WORKDIR/kernel_platform"
+./kernel_platform/oplus/build/oplus_build_kernel.sh "$BAZEL_TARGET" gki
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
 OUT_DIR="./kernel_platform/out/msm-kernel-${BAZEL_TARGET}-gki/dist"
