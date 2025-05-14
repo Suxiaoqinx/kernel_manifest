@@ -167,7 +167,7 @@ echo ">>> 开始编译内核..."
 ./build_with_bazel.py -t "$BAZEL_TARGET" gki
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
-OUT_DIR="./out/msm-kernel-${BAZEL_TARGET}-gki/dist"
+OUT_DIR="./kernel_platform/out/msm-kernel-${BAZEL_TARGET}-gki/dist"
 if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   echo ">>> 使用 patch_linux 工具处理输出..."
   cd "$OUT_DIR"
