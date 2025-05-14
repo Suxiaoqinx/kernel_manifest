@@ -98,11 +98,17 @@ git clone https://github.com/ShirkNeko/SukiSU_patch.git
 # ===== 应用 SUSFS 补丁 =====
 echo ">>> 应用 SUSFS 补丁..."
 cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+echo ">>> 1"
 cp ./kernel_patches/next/syscall_hooks.patch ./common/
+echo ">>> 2"
 cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
+echo ">>> 3"
 cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+echo ">>> 4"
 cd "$WORKDIR/kernel_platform/common"
+echo ">>> 5"
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+echo ">>> 6"
 
 cd "$WORKDIR/kernel_platform"
 cp ./kernel_patches/69_hide_stuff.patch ./
