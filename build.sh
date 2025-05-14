@@ -62,7 +62,7 @@ echo ">>> repo init 完成"
 "$SCRIPT_DIR/repo" sync -j16 --fail-fast
 echo ">>> repo sync 完成"
 
-cd "$WORKDIR/kernel_platform"
+cd kernel_platform
 
 # ===== 清除 abi 文件、去除 -dirty 后缀 =====
 echo ">>> 正在清除 ABI 文件及去除 dirty 后缀..."
