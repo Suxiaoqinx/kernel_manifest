@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# ===== 获取脚本所在路径作为工作目录 =====
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKDIR="$SCRIPT_DIR"
+cd "$WORKDIR"
+
 # ===== 设置自定义参数 =====
 echo ">>> 读取用户配置..."
 read -p "请输入 SoC 分支名称（默认：sm8650）: " SOC_BRANCH
@@ -22,6 +27,7 @@ read -p "是否应用 lz4kd 补丁？(y/n，默认：y): " APPLY_LZ4KD
 APPLY_LZ4KD=${APPLY_LZ4KD:-y}
 
 echo "===== 配置信息 ====="
+echo "工作目录: $WORKDIR"
 echo "SoC 分支: $SOC_BRANCH"
 echo "manifest: $MANIFEST_FILE"
 echo "后缀: -$CUSTOM_SUFFIX"
@@ -29,11 +35,6 @@ echo "构建目标: $BAZEL_TARGET"
 echo "使用 patch_linux: $USE_PATCH_LINUX"
 echo "应用 lz4kd 补丁: $APPLY_LZ4KD"
 echo "==================="
-
-# ===== 初始化工作目录 =====
-WORKDIR="$HOME/kernel_workspace"
-mkdir -p "$WORKDIR"
-cd "$WORKDIR"
 
 # ===== 安装依赖 =====
 echo ">>> 正在安装构建依赖..."
@@ -79,41 +80,41 @@ sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
 # ===== 克隆补丁仓库 =====
 echo ">>> 克隆补丁仓库..."
-cd ../
+cd "$WORKDIR"
 git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
 # ===== 应用 SUSFS 补丁 =====
 echo ">>> 应用 SUSFS 补丁..."
-cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
-cp ./kernel_patches/next/syscall_hooks.patch ./common/
-cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
-cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-cd ./common
+cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./kernel_platform/common/
+cp ./kernel_patches/next/syscall_hooks.patch ./kernel_platform/common/
+cp ./susfs4ksu/kernel_patches/fs/* ./kernel_platform/common/fs/
+cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/linux/
+cd ./kernel_platform/common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 cp ../kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
-cd ../
+cd "$WORKDIR"
 
 # ===== 选择应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   echo ">>> 应用 LZ4KD 补丁..."
-  cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux/
-  cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
-  cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
-  cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./common/
-  cd ./common
+  cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./kernel_platform/common/include/linux/
+  cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./kernel_platform/common/lib
+  cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./kernel_platform/common/crypto
+  cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./kernel_platform/common/
+  cd ./kernel_platform/common
   patch -p1 -F 3 < lz4kd.patch || true
-  cd ../
+  cd "$WORKDIR"
 else
   echo ">>> 跳过 LZ4KD 补丁应用"
 fi
 
 # ===== 添加 defconfig 配置项 =====
 echo ">>> 添加 defconfig 配置项..."
-cat >> ./common/arch/arm64/configs/gki_defconfig <<EOF
+cat >> ./kernel_platform/common/arch/arm64/configs/gki_defconfig <<EOF
 CONFIG_KSU=y
 CONFIG_KPM=y
 CONFIG_KSU_SUSFS_SUS_SU=n
@@ -142,16 +143,17 @@ EOF
 
 # ===== 禁用 defconfig 检查 =====
 echo ">>> 禁用 defconfig 检查..."
-sed -i 's/check_defconfig//' ./common/build.config.gki
+sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
 
 # ===== 再次替换版本后缀 =====
 echo ">>> 再次替换版本后缀..."
-for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion ./external/dtc/scripts/setlocalversion; do
+for f in ./kernel_platform/common/scripts/setlocalversion ./kernel_platform/msm-kernel/scripts/setlocalversion ./kernel_platform/external/dtc/scripts/setlocalversion; do
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
+cd "$WORKDIR/kernel_platform"
 ./build_with_bazel.py -t "$BAZEL_TARGET" gki
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
@@ -165,16 +167,15 @@ if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   rm -f Image
   mv oImage Image
   echo ">>> 已成功打上KPM补丁"
-  cd ../../..  # 返回到 kernel_platform 根目录
+  cd "$WORKDIR/kernel_platform"
 else
   echo ">>> 跳过 patch_linux 操作"
 fi
 
 # ===== 克隆并打包 AnyKernel3 =====
 echo ">>> 克隆 AnyKernel3 项目..."
+cd "$WORKDIR"
 git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
-
-echo ">>> 清理 AnyKernel3 Git 信息..."
 rm -rf ./AnyKernel3/.git
 
 echo ">>> 拷贝内核镜像到 AnyKernel3 目录..."
@@ -183,18 +184,15 @@ cp "$OUT_DIR/Image" ./AnyKernel3/
 echo ">>> 进入 AnyKernel3 目录并打包 zip..."
 cd AnyKernel3
 
-# ===== 检查是否启用 lz4kd 和 kpm =====
-ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ../common/arch/arm64/configs/gki_defconfig)
-ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ../common/arch/arm64/configs/gki_defconfig)
+ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ../kernel_platform/common/arch/arm64/configs/gki_defconfig)
+ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ../kernel_platform/common/arch/arm64/configs/gki_defconfig)
 
-# ===== 如果启用 lz4kd，则下载 zram.zip 并放入当前目录 =====
 if [[ -n "$ENABLE_LZ4KD" ]]; then
   echo ">>> 检测到启用了 lz4kd，准备下载 zram.zip..."
   curl -LO https://raw.githubusercontent.com/Suxiaoqinx/kernel_manifest_OnePlus_Sukisu_Ultra/main/zram.zip
   echo ">>> 已下载 zram.zip 并放入打包目录"
 fi
 
-# ===== 生成 ZIP 文件名 =====
 MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
 ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
 
@@ -207,10 +205,8 @@ elif [[ -n "$ENABLE_KPM" ]]; then
 fi
 
 ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
-
-# ===== 打包 ZIP 文件，包括 zram.zip（如果存在） =====
 echo ">>> 打包文件: $ZIP_NAME"
 zip -r "../$ZIP_NAME" ./*
 
 ZIP_PATH="$(realpath "../$ZIP_NAME")"
-echo ">>> 打包完成 文件所在目录: $ZIP_PATH"
+echo ">>> 打包完成，文件路径: $ZIP_PATH"
