@@ -103,7 +103,9 @@ cp ./susfs4ksu/kernel_patches/fs/* ./kernel_platform/common/fs/
 cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/linux/
 cd ./kernel_platform/common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
-cp ../kernel_patches/69_hide_stuff.patch ./
+
+cd "$WORKDIR/kernel_platform"
+cp ./kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
 cd "$WORKDIR"
