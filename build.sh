@@ -117,9 +117,10 @@ if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./common/
   cd "$WORKDIR/kernel_platform/common"
   patch -p1 -F 3 < lz4kd.patch || true
-  cd "$WORKDIR"
+  cd "$WORKDIR/kernel_platform"
 else
   echo ">>> 跳过 LZ4KD 补丁应用"
+  cd "$WORKDIR/kernel_platform"
 fi
 
 # ===== 添加 defconfig 配置项 =====
