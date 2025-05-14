@@ -53,6 +53,8 @@ sudo mv ~/repo /usr/local/bin/repo
 echo
 
 # ===== 初始化仓库 =====
+git config --global user.email "3074193836@qq.com"
+git config --global user.name "Suxiaoqingx"
 cd "$WORKDIR"
 echo ">>> 初始化仓库..."
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
