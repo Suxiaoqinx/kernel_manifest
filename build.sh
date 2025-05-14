@@ -80,6 +80,13 @@ for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion .
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
+# ===== 替换版本后缀 =====
+echo ">>> 替换内核版本后缀（2）..."
+CUSTOM_SUFFIX="苏晓晴 Coolapk@Suxiaoqing Github@Suxiaoqingx"
+for f in ./msm-kernel/scripts/mkcompile_h ./common/scripts/mkcompile_h; do
+  sed -i 's|\(#define LINUX_COMPILER[[:space:]]*"\)\(.*\)\(".*\)$|\1\2 -'"$CUSTOM_SUFFIX"'\3|' "$f"
+done
+
 # ===== 拉取 SukiSU-Ultra 并设置版本号 =====
 echo ">>> 拉取 SukiSU-Ultra 并设置版本..."
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
