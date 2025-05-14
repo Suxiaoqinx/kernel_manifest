@@ -197,26 +197,31 @@ else
 fi
 
 # ===== 克隆并打包 AnyKernel3 =====
-echo ">>> 克隆 AnyKernel3 项目..."
 cd "$WORKDIR"
+echo ">>> 克隆 AnyKernel3 项目..."
 git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
+
+echo ">>> 清理 AnyKernel3 Git 信息..."
 rm -rf ./AnyKernel3/.git
 
 echo ">>> 拷贝内核镜像到 AnyKernel3 目录..."
 cp "$OUT_DIR/Image" ./AnyKernel3/
 
 echo ">>> 进入 AnyKernel3 目录并打包 zip..."
-cd AnyKernel3
+cd "$WORKDIR/AnyKernel3"
 
-ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ../kernel_platform/common/arch/arm64/configs/gki_defconfig)
-ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ../kernel_platform/common/arch/arm64/configs/gki_defconfig)
+# ===== 检查是否启用 lz4kd 和 kpm =====
+ENABLE_LZ4KD=$(grep -o 'CONFIG_CRYPTO_LZ4KD=y' ../common/arch/arm64/configs/gki_defconfig)
+ENABLE_KPM=$(grep -o 'CONFIG_KPM=y' ../common/arch/arm64/configs/gki_defconfig)
 
+# ===== 如果启用 lz4kd，则下载 zram.zip 并放入当前目录 =====
 if [[ -n "$ENABLE_LZ4KD" ]]; then
   echo ">>> 检测到启用了 lz4kd，准备下载 zram.zip..."
   curl -LO https://raw.githubusercontent.com/Suxiaoqinx/kernel_manifest_OnePlus_Sukisu_Ultra/main/zram.zip
   echo ">>> 已下载 zram.zip 并放入打包目录"
 fi
 
+# ===== 生成 ZIP 文件名 =====
 MANIFEST_BASENAME=$(basename "$MANIFEST_FILE" .xml)
 ZIP_NAME="Anykernel3-${MANIFEST_BASENAME}"
 
@@ -229,8 +234,10 @@ elif [[ -n "$ENABLE_KPM" ]]; then
 fi
 
 ZIP_NAME="${ZIP_NAME}-v$(date +%Y%m%d).zip"
+
+# ===== 打包 ZIP 文件，包括 zram.zip（如果存在） =====
 echo ">>> 打包文件: $ZIP_NAME"
 zip -r "../$ZIP_NAME" ./*
 
 ZIP_PATH="$(realpath "../$ZIP_NAME")"
-echo ">>> 打包完成，文件路径: $ZIP_PATH"
+echo ">>> 打包完成 文件所在目录: $ZIP_PATH"
