@@ -104,11 +104,10 @@ cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/l
 cd ./kernel_platform/common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
-cd "$WORKDIR/kernel_platform"
+cd "$WORKDIR"
 cp ./kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
-cd "$WORKDIR"
 
 # ===== 选择应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
