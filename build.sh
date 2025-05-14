@@ -49,7 +49,7 @@ sudo apt-get install -y git curl zip perl make gcc python3
 # ===== 下载 repo 工具到脚本目录 =====
 echo ">>> 下载 repo 工具到当前目录..."
 cd "$SCRIPT_DIR"
-curl -LSs -o repo https://storage.googleapis.com/git-repo-downloads/repo
+curl --tlsv1.2 -LSs -o repo https://storage.googleapis.com/git-repo-downloads/repo
 chmod +x repo
 echo ">>> repo 安装完成: $SCRIPT_DIR/repo"
 echo
