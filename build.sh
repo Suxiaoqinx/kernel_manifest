@@ -192,6 +192,7 @@ if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   rm -f Image
   mv oImage Image
   echo ">>> 已成功打上KPM补丁"
+  cd ../../..  # 返回到 kernel_platform 根目录
 else
   echo ">>> 跳过 patch_linux 操作"
 fi
