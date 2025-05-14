@@ -98,26 +98,15 @@ git clone https://github.com/ShirkNeko/SukiSU_patch.git
 # ===== 应用 SUSFS 补丁 =====
 echo ">>> 应用 SUSFS 补丁..."
 cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
-echo ">>> 1"
 cp ./kernel_patches/next/syscall_hooks.patch ./common/
-echo ">>> 2"
 cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
-echo ">>> 3"
 cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-echo ">>> 4"
-cd "$WORKDIR/kernel_platform/common"
-echo ">>> 5"
+cd ./common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
-echo ">>> 6"
-
-# 打 syscall_hooks 和 hide_stuff 补丁前，进入 kernel_platform 目录
-cd "$WORKDIR/kernel_platform"
-
-cp ./kernel_patches/69_hide_stuff.patch ./
+cp ../kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
-
-#cd "$WORKDIR/kernel_platform"
-patch -p1 -F 3 < kernel_patches/syscall_hooks.patch
+patch -p1 -F 3 < syscall_hooks.patch
+cd ../
 
 # ===== 选择应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
