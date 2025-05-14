@@ -124,7 +124,7 @@ fi
 
 # ===== 添加 defconfig 配置项 =====
 echo ">>> 添加 defconfig 配置项..."
-cat >> ./kernel_platform/common/arch/arm64/configs/gki_defconfig <<EOF
+cat >> ./common/arch/arm64/configs/gki_defconfig <<EOF
 CONFIG_KSU=y
 CONFIG_KPM=y
 CONFIG_KSU_SUSFS_SUS_SU=n
@@ -153,17 +153,17 @@ EOF
 
 # ===== 禁用 defconfig 检查 =====
 echo ">>> 禁用 defconfig 检查..."
-sed -i 's/check_defconfig//' ./kernel_platform/common/build.config.gki
+sed -i 's/check_defconfig//' ./common/build.config.gki
 
 # ===== 再次替换版本后缀 =====
 echo ">>> 再次替换版本后缀..."
-for f in ./kernel_platform/common/scripts/setlocalversion ./kernel_platform/msm-kernel/scripts/setlocalversion ./kernel_platform/external/dtc/scripts/setlocalversion; do
+for f in ./common/scripts/setlocalversion ./msm-kernel/scripts/setlocalversion ./external/dtc/scripts/setlocalversion; do
   sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" "$f"
 done
 
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
-cd "$WORKDIR/kernel_platform"
+#cd "$WORKDIR/kernel_platform"
 ./build_with_bazel.py -t "$BAZEL_TARGET" gki
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
