@@ -97,11 +97,11 @@ git clone https://github.com/ShirkNeko/SukiSU_patch.git
 
 # ===== 应用 SUSFS 补丁 =====
 echo ">>> 应用 SUSFS 补丁..."
-cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./kernel_platform/common/
-cp ./kernel_patches/next/syscall_hooks.patch ./kernel_platform/common/
-cp ./susfs4ksu/kernel_patches/fs/* ./kernel_platform/common/fs/
-cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/linux/
-cd ./common
+cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+cp ./kernel_patches/next/syscall_hooks.patch ./common/
+cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
+cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+cd "$WORKDIR/kernel_platform/common"
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
 cd "$WORKDIR/kernel_platform"
@@ -112,10 +112,10 @@ patch -p1 -F 3 < syscall_hooks.patch
 # ===== 选择应用 LZ4KD 补丁 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   echo ">>> 应用 LZ4KD 补丁..."
-  cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./kernel_platform/common/include/linux/
-  cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./kernel_platform/common/lib
-  cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./kernel_platform/common/crypto
-  cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./kernel_platform/common/
+  cp -r ./SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux/
+  cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./common/lib
+  cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
+  cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./common/
   cd "$WORKDIR/kernel_platform/common"
   patch -p1 -F 3 < lz4kd.patch || true
   cd "$WORKDIR"
