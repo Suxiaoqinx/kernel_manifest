@@ -90,7 +90,7 @@ sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
 # ===== 克隆补丁仓库 =====
 echo ">>> 克隆补丁仓库..."
-cd "$WORKDIR"
+cd "$WORKDIR/kernel_platform"
 git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 git clone https://github.com/Xiaomichael/kernel_patches.git
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
@@ -104,7 +104,7 @@ cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/l
 cd "$WORKDIR/kernel_platform/common"
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
-cd "$WORKDIR"
+cd "$WORKDIR/kernel_platform"
 cp ./kernel_patches/69_hide_stuff.patch ./
 patch -p1 -F 3 < 69_hide_stuff.patch
 patch -p1 -F 3 < syscall_hooks.patch
