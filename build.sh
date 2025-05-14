@@ -101,7 +101,7 @@ cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./kernel_p
 cp ./kernel_patches/next/syscall_hooks.patch ./kernel_platform/common/
 cp ./susfs4ksu/kernel_patches/fs/* ./kernel_platform/common/fs/
 cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/linux/
-cd ./kernel_platform/common
+cd "$WORKDIR/kernel_platform/common"
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
 cd "$WORKDIR"
@@ -116,7 +116,7 @@ if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   cp -r ./SukiSU_patch/other/zram/lz4k/lib/* ./kernel_platform/common/lib
   cp -r ./SukiSU_patch/other/zram/lz4k/crypto/* ./kernel_platform/common/crypto
   cp ./SukiSU_patch/other/zram/zram_patch/6.1/lz4kd.patch ./kernel_platform/common/
-  cd ./kernel_platform/common
+  cd "$WORKDIR/kernel_platform/common"
   patch -p1 -F 3 < lz4kd.patch || true
   cd "$WORKDIR"
 else
