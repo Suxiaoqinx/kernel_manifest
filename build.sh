@@ -1,10 +1,9 @@
 #!/bin/bash
 set -e
 
-# ===== 获取脚本所在路径作为工作目录 =====
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKDIR="$SCRIPT_DIR"
-cd "$WORKDIR"
+# ===== 获取脚本目录 =====
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
 # ===== 设置自定义参数 =====
 echo ">>> 读取用户配置..."
@@ -26,31 +25,42 @@ USE_PATCH_LINUX=${USE_PATCH_LINUX:-y}
 read -p "是否应用 lz4kd 补丁？(y/n，默认：y): " APPLY_LZ4KD
 APPLY_LZ4KD=${APPLY_LZ4KD:-y}
 
+echo
 echo "===== 配置信息 ====="
-echo "工作目录: $WORKDIR"
 echo "SoC 分支: $SOC_BRANCH"
 echo "manifest: $MANIFEST_FILE"
 echo "后缀: -$CUSTOM_SUFFIX"
 echo "构建目标: $BAZEL_TARGET"
 echo "使用 patch_linux: $USE_PATCH_LINUX"
 echo "应用 lz4kd 补丁: $APPLY_LZ4KD"
-echo "==================="
+echo "===================="
+echo
 
-# ===== 安装依赖 =====
-echo ">>> 正在安装构建依赖..."
+# ===== 创建工作目录 =====
+WORKDIR="$SCRIPT_DIR/kernel_workspace"
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
+
+# ===== 安装构建依赖 =====
+echo ">>> 安装构建依赖..."
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-# ===== 安装 repo 工具 =====
-echo ">>> 正在安装 repo 工具..."
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
-chmod a+x ~/repo
-sudo mv ~/repo /usr/local/bin/repo
+# ===== 下载 repo 工具到脚本目录 =====
+echo ">>> 下载 repo 工具到当前目录..."
+cd "$SCRIPT_DIR"
+curl -LSs -o repo https://storage.googleapis.com/git-repo-downloads/repo
+chmod +x repo
+echo ">>> repo 安装完成: $SCRIPT_DIR/repo"
+echo
 
 # ===== 初始化仓库 =====
-echo ">>> 正在初始化仓库..."
-repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
-repo sync -j16 --fail-fast
+cd "$WORKDIR"
+echo ">>> 初始化仓库..."
+"$SCRIPT_DIR/repo" init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
+echo ">>> repo init 完成"
+"$SCRIPT_DIR/repo" sync -j16 --fail-fast
+echo ">>> repo sync 完成"
 
 cd "$WORKDIR/kernel_platform"
 
