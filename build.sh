@@ -101,7 +101,7 @@ cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./kernel_p
 cp ./kernel_patches/next/syscall_hooks.patch ./kernel_platform/common/
 cp ./susfs4ksu/kernel_patches/fs/* ./kernel_platform/common/fs/
 cp ./susfs4ksu/kernel_patches/include/linux/* ./kernel_platform/common/include/linux/
-cd "$WORKDIR/kernel_platform/common"
+cd ./common
 patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
 
 cd "$WORKDIR/kernel_platform"
