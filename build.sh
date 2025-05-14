@@ -47,7 +47,7 @@ sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
 # ===== 下载 repo 工具 =====
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 echo
