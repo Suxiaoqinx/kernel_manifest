@@ -177,7 +177,7 @@ done
 
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
-cd "$WORKDIR/kernel_platform"
+#cd "$WORKDIR/kernel_platform"
 ./oplus/build/oplus_build_kernel.sh "$BAZEL_TARGET" gki
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
