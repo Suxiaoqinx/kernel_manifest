@@ -124,9 +124,11 @@ fi
 
 # ===== 添加 defconfig 配置项 =====
 echo ">>> 添加 defconfig 配置项..."
-cat >> ./common/arch/arm64/configs/gki_defconfig <<EOF
+DEFCONFIG_FILE=./common/arch/arm64/configs/gki_defconfig
+
+# 写入通用 SUSFS/KSU 配置
+cat >> "$DEFCONFIG_FILE" <<EOF
 CONFIG_KSU=y
-CONFIG_KPM=y
 CONFIG_KSU_SUSFS_SUS_SU=n
 CONFIG_KSU_MANUAL_HOOK=y
 CONFIG_KSU_SUSFS=y
@@ -144,12 +146,24 @@ CONFIG_KSU_SUSFS_ENABLE_LOG=y
 CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y
 CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
 CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
+EOF
+
+# 仅在启用了 patch_linux 时添加 KPM 支持
+if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
+  echo "CONFIG_KPM=y" >> "$DEFCONFIG_FILE"
+fi
+
+# 仅在启用了 LZ4KD 补丁时添加相关算法支持
+if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
+  cat >> "$DEFCONFIG_FILE" <<EOF
 CONFIG_ZSMALLOC=y
 CONFIG_CRYPTO_LZ4HC=y
 CONFIG_CRYPTO_LZ4K=y
 CONFIG_CRYPTO_LZ4KD=y
 CONFIG_CRYPTO_842=y
 EOF
+fi
+
 
 # ===== 禁用 defconfig 检查 =====
 echo ">>> 禁用 defconfig 检查..."
