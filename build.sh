@@ -19,6 +19,9 @@ CUSTOM_SUFFIX=${CUSTOM_SUFFIX:-oki-Coolapk@Suxiaoqing}
 read -p "请输入 Bazel 构建目标（默认：pineapple）: " BAZEL_TARGET
 BAZEL_TARGET=${BAZEL_TARGET:-pineapple}
 
+read -p "请输入 kernel 内核版本（默认：6.1）: " KERNEL_VERSION
+BAZEL_TARGET=${KERNEL_VERSION:-6.1}
+
 read -p "是否使用 patch_linux 工具添加KPM补丁内核？(y/n，默认：y): " USE_PATCH_LINUX
 USE_PATCH_LINUX=${USE_PATCH_LINUX:-y}
 
@@ -31,6 +34,7 @@ echo "SoC 分支: $SOC_BRANCH"
 echo "manifest: $MANIFEST_FILE"
 echo "后缀: -$CUSTOM_SUFFIX"
 echo "构建目标: $BAZEL_TARGET"
+exho "kernel 内核版本：$KERNEL_VERSION"
 echo "使用 patch_linux: $USE_PATCH_LINUX"
 echo "应用 lz4kd 补丁: $APPLY_LZ4KD"
 echo "===================="
@@ -185,11 +189,15 @@ done
 
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
-#cd "$WORKDIR/kernel_platform"
-./build_with_bazel.py -t "$BAZEL_TARGET" gki
+cd "$WORKDIR"
+if [[ "$KERNEL_VERSION" == "6.1"]]; then
+    ./kernel_platform/build_with_bazel.py -t "$BAZEL_TARGET" gki
+else
+    LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh "$BAZEL_TARGET" gki
+fi
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
-cd "$WORKDIR"
+#cd "$WORKDIR"
 OUT_DIR="./kernel_platform/out/msm-kernel-${BAZEL_TARGET}-gki/dist"
 if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
   echo ">>> 使用 patch_linux 工具处理输出..."
