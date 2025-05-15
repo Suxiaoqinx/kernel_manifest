@@ -22,6 +22,9 @@ BAZEL_TARGET=${BAZEL_TARGET:-pineapple}
 read -p "请输入 kernel 内核版本（默认：6.1）: " KERNEL_VERSION
 BAZEL_TARGET=${KERNEL_VERSION:-6.1}
 
+read -p "请输入 内核安卓版本（默认：android14）: " ANDROID_VERSION
+ANDROID_VERSION=${ANDROID_VERSION:-android14}
+
 read -p "是否使用 patch_linux 工具添加KPM补丁内核？(y/n，默认：y): " USE_PATCH_LINUX
 USE_PATCH_LINUX=${USE_PATCH_LINUX:-y}
 
@@ -167,15 +170,52 @@ fi
 
 # 仅在启用了 LZ4KD 补丁时添加相关算法支持
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
-  cat >> "$DEFCONFIG_FILE" <<EOF
-CONFIG_ZSMALLOC=y
-CONFIG_CRYPTO_LZ4HC=y
-CONFIG_CRYPTO_LZ4K=y
-CONFIG_CRYPTO_LZ4KD=y
-CONFIG_CRYPTO_842=y
-EOF
+  if [ "$KERNEL_VERSION" = "5.10" ]; then
+      echo "CONFIG_ZSMALLOC=y" >> "$DEFCONFIG_FILE"
+      echo "CONFIG_ZRAM=y" >> "$DEFCONFIG_FILE"
+      echo "CONFIG_MODULE_SIG=n" >> "$DEFCONFIG_FILE"
+      echo "CONFIG_CRYPTO_LZO=y" >> "$DEFCONFIG_FILE"
+      echo "CONFIG_ZRAM_DEF_COMP_LZ4KD=y" >> "$DEFCONFIG_FILE"
 fi
 
+if [ "$KERNEL_VERSION" != "6.6" ] && [ "$KERNEL_VERSION" != "5.10" ]; then
+  if grep -q "CONFIG_ZSMALLOC" -- "$DEFCONFIG_FILE"; then
+      sed -i 's/CONFIG_ZSMALLOC=m/CONFIG_ZSMALLOC=y/g' "$DEFCONFIG_FILE"
+  else
+      echo "CONFIG_ZSMALLOC=y" >> "$DEFCONFIG_FILE"
+  fi
+      sed -i 's/CONFIG_ZRAM=m/CONFIG_ZRAM=y/g' "$DEFCONFIG_FILE"
+fi
+
+if [ "$KERNEL_VERSION" = "6.6" ]; then
+      echo "CONFIG_ZSMALLOC=y" >> "$DEFCONFIG_FILE"
+      sed -i 's/CONFIG_ZRAM=m/CONFIG_ZRAM=y/g' "$DEFCONFIG_FILE"
+fi
+
+if [ "$ANDROID_VERSION" = "android14" ] || [ "$ANDROID_VERSION" = "android15" ]; then
+      if [  -e ./common/modules.bzl ]; then
+          sed -i 's/"drivers\/block\/zram\/zram\.ko",//g; s/"mm\/zsmalloc\.ko",//g' "./common/modules.bzl"
+      fi
+
+      if [  -e ./msm-kernel/modules.bzl ]; then
+          sed -i 's/"drivers\/block\/zram\/zram\.ko",//g; s/"mm\/zsmalloc\.ko",//g' "./msm-kernel/modules.bzl"
+          echo "CONFIG_ZSMALLOC=y" >> "msm-kernel/arch/arm64/configs/$SOC_BRANCH-GKI.config"
+          echo "CONFIG_ZRAM=y" >> "msm-kernel/arch/arm64/configs/$SOC_BRANCH-GKI.config"
+      fi
+              
+          echo "CONFIG_MODULE_SIG_FORCE=n" >> "$DEFCONFIG_FILE"
+      elif [ "$KERNEL_VERSION" = "5.10" ] || [ "$KERNEL_VERSION" = "5.15" ]; then
+          rm "common/android/gki_aarch64_modules"
+          touch "common/android/gki_aarch64_modules"
+      fi
+
+      if grep -q "CONFIG_ZSMALLOC=y" "$DEFCONFIG_FILE" && grep -q "CONFIG_ZRAM=y" "$DEFCONFIG_FILE"; then
+        echo "CONFIG_CRYPTO_LZ4HC=y" >> "$DEFCONFIG_FILE"
+        echo "CONFIG_CRYPTO_LZ4K=y" >> "$DEFCONFIG_FILE"
+        echo "CONFIG_CRYPTO_LZ4KD=y" >> "$DEFCONFIG_FILE"
+        echo "CONFIG_CRYPTO_842=y" >> "$DEFCONFIG_FILE"
+        echo "CONFIG_ZRAM_WRITEBACK=y" >> "$DEFCONFIG_FILE"
+fi
 
 # ===== 禁用 defconfig 检查 =====
 echo ">>> 禁用 defconfig 检查..."
@@ -190,10 +230,72 @@ done
 # ===== 编译内核 =====
 echo ">>> 开始编译内核..."
 cd "$WORKDIR"
-if [[ "$KERNEL_VERSION" == "6.1"]]; then
+if [ "$SOC_BRANCH" = "sm8650" ] || [ "$SOC_BRANCH" = "sm7675" ]; then
     ./kernel_platform/build_with_bazel.py -t "$BAZEL_TARGET" gki
+fi
+
+if [ "$SOC_BRANCH" = "sm8650" ] || [ "$SOC_BRANCH" = "sm7675" ]; then
+    LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/oplus/build/oplus_build_kernel.sh $SOC_BRANCH $BUILD_METHOD
+fi
+
+# ===== 克隆并打包 AnyKernel3 =====
+echo ">>> 克隆 AnyKernel3 项目..."
+git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
+
+git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
+rm -rf ./AnyKernel3/.git
+
+dir1="kernel_workspace/kernel_platform/out/msm-kernel-$BAZEL_TARGET-$BUILD_METHOD/dist/"
+dir2="kernel_workspace/kernel_platform/bazel-out/k8-fastbuild/bin/msm-kernel/$BAZEL_TARGET_gki_kbuild_mixed_tree/"
+dir3="kernel_workspace/kernel_platform/out/msm-$BAZEL_TARGET-$BAZEL_TARGET-$BUILD_METHOD/dist/"
+dir4="kernel_workspace/kernel_platform/out/msm-kernel-$BAZEL_TARGET-$BUILD_METHOD/gki_kernel/common/arch/arm64/boot/"
+dir5="kernel_workspace/kernel_platform/out/msm-$BAZEL_TARGET-$BAZEL_TARGET-$BUILD_METHOD/gki_kernel/common/arch/arm64/boot/"
+target1="./AnyKernel3/"
+target2="./kernel_workspace/kernel"
+
+# 查找 Image 文件
+if find "$dir1" -name "Image" | grep -q "Image"; then
+   image_path="$dir1"Image
+elif find "$dir2" -name "Image" | grep -q "Image"; then
+   image_path="$dir2"Image
+elif find "$dir3" -name "Image" | grep -q "Image"; then
+   image_path="$dir3"Image
+elif find "$dir4" -name "Image" | grep -q "Image"; then
+    image_path="$dir4"Image
+elif find "$dir5" -name "Image" | grep -q "Image"; then
+    image_path="$dir5"Image
 else
-    LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh "$BAZEL_TARGET" gki
+    image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
+fi
+
+# 拷贝 Image
+if [ -n "$image_path" ] && [ -f "$image_path" ]; then
+    mkdir -p "$dir1"
+  if [ "$(realpath "$image_path")" != "$(realpath "$dir1"Image)" ]; then
+    cp "$image_path" "$dir1"
+  else
+    echo "源文件与目标相同，跳过复制"
+  fi
+    cp "$dir1"Image ./AnyKernel3/Image
+  else
+    echo "未找到 Image 文件，构建可能失败"
+    exit 1
+  fi
+
+# 可选复制其它新文件（如果存在）
+if [ "$SOC_BRANCH" = "sm8750" ]; then
+   for file in dtbo.img system_dlkm.erofs.img vendor_dlkm.img vendor_boot.img; do
+     if [ -f "$dir1$file" ]; then
+       target_name="$file"
+       # 特殊处理 system_dlkm.erofs.img 的目标名
+     if [ "$file" = "system_dlkm.erofs.img" ]; then
+       target_name="system_dlkm.img"
+     fi
+       cp "$dir1$file" "./AnyKernel3/$target_name"
+     else
+       echo "$file 不存在，跳过复制"
+     fi
+       done
 fi
 
 # ===== 选择使用 patch_linux (KPM补丁)=====
@@ -212,20 +314,6 @@ if [[ "$USE_PATCH_LINUX" == "y" || "$USE_PATCH_LINUX" == "Y" ]]; then
 else
   echo ">>> 跳过 patch_linux 操作"
 fi
-
-# ===== 克隆并打包 AnyKernel3 =====
-cd "$WORKDIR"
-echo ">>> 克隆 AnyKernel3 项目..."
-git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
-
-echo ">>> 清理 AnyKernel3 Git 信息..."
-rm -rf ./AnyKernel3/.git
-
-echo ">>> 拷贝内核镜像到 AnyKernel3 目录..."
-cp "$OUT_DIR/Image" ./AnyKernel3/
-
-echo ">>> 进入 AnyKernel3 目录并打包 zip..."
-cd "$WORKDIR/AnyKernel3"
 
 # ===== 如果启用 lz4kd，则下载 zram.zip 并放入当前目录 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
