@@ -54,20 +54,20 @@ echo ">>> 安装构建依赖..."
 sudo apt-get update
 sudo apt-get install -y git curl zip perl make gcc python3
 
-# ===== 下载 repo 工具 =====
-curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo > ~/repo
-chmod a+x ~/repo
-sudo mv ~/repo /usr/local/bin/repo
+# ===== 下载 repo 工具到脚本目录 =====
+echo ">>> 下载 repo 工具到当前目录..."
+#cd "$SCRIPT_DIR"
+curl --tlsv1.2 -LSs -o repo https://storage.googleapis.com/git-repo-downloads/repo
+chmod +x repo
+echo ">>> repo 安装完成: $SCRIPT_DIR/repo"
 echo
 
 # ===== 初始化仓库 =====
-git config --global user.email "3074193836@qq.com"
-git config --global user.name "Suxiaoqingx"
-cd "$WORKDIR"
+#cd "$WORKDIR"
 echo ">>> 初始化仓库..."
-repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
+"$SCRIPT_DIR/repo" init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
 echo ">>> repo init 完成"
-repo sync -j16 --fail-fast
+"$SCRIPT_DIR/repo" sync -j16 --fail-fast
 echo ">>> repo sync 完成"
 
 cd kernel_platform
